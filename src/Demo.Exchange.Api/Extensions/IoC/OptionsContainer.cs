@@ -8,6 +8,7 @@
     {
         public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<JaegerOptions>(configuration.GetSection(nameof(JaegerOptions)));
             services.Configure<AppConfigOptions>(configuration.GetSection(nameof(AppConfigOptions)));
             services.Configure<EndPointConnectorsOptions>(configuration.GetSection(nameof(EndPointConnectorsOptions)));
             services.Configure<ConnectionStringOptions>(connectionStringOptions => connectionStringOptions.MySqlConnection = configuration.GetConnectionString("MySqlConnection"));

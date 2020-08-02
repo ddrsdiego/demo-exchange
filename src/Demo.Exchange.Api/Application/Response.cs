@@ -5,6 +5,7 @@
     using System.Text.Json.Serialization;
 
     public abstract class Response<TOut> : Response
+        where TOut : struct
     {
         protected Response(string requestId)
             : base(requestId)

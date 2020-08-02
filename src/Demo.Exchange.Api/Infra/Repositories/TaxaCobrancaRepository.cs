@@ -21,7 +21,7 @@
         public async Task Atualizar(TaxaCobranca taxaCobranca) => await ExecutarAtualizar(taxaCobranca);
 
         public async Task<TaxaCobranca> ObterPorId(string id)
-            => await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterTaxaCobrancaPorSegmento, new { id }), id);
+            => await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterPorId, new { id }), id);
 
         public async Task<TaxaCobranca> ObterTaxaCobrancaPorSegmento(string segmento)
             => await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterTaxaCobrancaPorSegmento, new { segmento }), segmento);

@@ -3,6 +3,9 @@
     using Demo.Exchange.Infra.Options;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using OpenTracing;
+    using OpenTracing.Propagation;
+    using OpenTracing.Tag;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -29,8 +32,9 @@
         public ExchangeRatesApiConnector(IHttpClientFactory httpClient,
                                          ILoggerFactory logger,
                                          IOptions<AppConfigOptions> appConfigOptions,
-                                         IOptions<EndPointConnectorsOptions> endPointConnectorsOptions)
-            : base(httpClient, logger.CreateLogger<ExchangeRatesApiConnector>(), endPointConnectorsOptions.Value.ExchangeRatesApiConnector)
+                                         IOptions<EndPointConnectorsOptions> endPointConnectorsOptions,
+                                         ITracer tracer)
+            : base(httpClient, logger.CreateLogger<ExchangeRatesApiConnector>(), tracer, endPointConnectorsOptions.Value.ExchangeRatesApiConnector)
         {
             _appConfigOptions = appConfigOptions.Value;
         }
@@ -41,16 +45,20 @@
 
             try
             {
-                var client = _httpClient.CreateClient();
-                var httpResponseMessage = await client.GetAsync(endpoint);
+                var client = _httpClient.CreateClient(nameof(ExchangeRatesApiConnector));
 
-                httpResponseMessage.EnsureSuccessStatusCode();
+                using (var scope = Tracer.BuildSpan("ExchangeRatesApiConnector::OberUltimaCotacaoPorMoeda").StartActive(finishSpanOnDispose: true))
+                {
+                    var httpResponseMessage = await client.GetAsync(endpoint);
 
-                var content = await httpResponseMessage.Content.ReadAsStringAsync();
+                    httpResponseMessage.EnsureSuccessStatusCode();
 
-                var exchangeRate = JsonSerializer.Deserialize<ExchangeRate>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                    var content = await httpResponseMessage.Content.ReadAsStringAsync();
 
-                return exchangeRate.Rates.FirstOrDefault(x => x.Key.Equals(_appConfigOptions.MoedaLocal, StringComparison.InvariantCultureIgnoreCase));
+                    var exchangeRate = JsonSerializer.Deserialize<ExchangeRate>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+                    return exchangeRate.Rates.FirstOrDefault(x => x.Key.Equals(_appConfigOptions.MoedaLocal, StringComparison.InvariantCultureIgnoreCase));
+                }
             }
             catch (Exception ex)
             {

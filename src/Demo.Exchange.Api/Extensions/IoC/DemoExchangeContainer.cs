@@ -13,12 +13,13 @@
 
         public static IServiceCollection AddDemoExchangeServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddJaeger();
             services.AddSwagger();
-            services.AddOptions(configuration);
-            services.AddHandlers();
-            services.AddRepositories();
             services.AddServices();
+            services.AddHandlers();
+            services.AddOptions(configuration);
             services.AddMemcached(configuration);
+            services.AddRepositories(configuration);
 
             return services;
         }

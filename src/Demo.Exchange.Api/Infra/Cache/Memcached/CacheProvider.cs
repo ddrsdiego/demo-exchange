@@ -1,6 +1,7 @@
 ﻿namespace Demo.Exchange.Infra.Cache.Memcached
 {
     using Enyim.Caching;
+    using OpenTracing;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -18,18 +19,23 @@
     {
         private readonly IMemcachedClient _memcachedClient;
         private readonly ICacheRepository _cacheRepository;
+        private readonly ITracer _tracer;
 
-        public CacheProvider(IMemcachedClient memcachedClient, ICacheRepository cacheRepository)
+        public CacheProvider(IMemcachedClient memcachedClient, ICacheRepository cacheRepository, ITracer tracer)
         {
             _memcachedClient = memcachedClient;
             _cacheRepository = cacheRepository;
+            _tracer = tracer;
         }
 
         public async ValueTask<T> Get<T>(string key)
         {
-            var valueResult = await _memcachedClient.GetAsync<T>(key);
+            using (var scope = _tracer.BuildSpan($"CacheProvider::Get::{typeof(T)}").StartActive(true))
+            {
+                var valueResult = await _memcachedClient.GetAsync<T>(key);
 
-            return valueResult.HasValue ? valueResult.Value : default;
+                return valueResult.HasValue ? valueResult.Value : default;
+            }
         }
 
         public async ValueTask<IDictionary<string, T>> Get<T>(IEnumerable<string> keys) => await _memcachedClient.GetAsync<T>(keys);

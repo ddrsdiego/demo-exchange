@@ -8,5 +8,10 @@
         }
 
         public decimal Valor { get; }
+
+        public override string ToString()
+        {
+            return System.Text.Json.JsonSerializer.Serialize(this);
+        }
     }
 }
