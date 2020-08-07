@@ -9,29 +9,47 @@
 
     [ApiController]
     [ApiVersion(API_VERSION)]
-    [Produces("application/json")]
+    [Produces(CONTENT_TYPE_PRODUCER)]
     [Route("api/v{version:apiVersion}/taxas")]
     public class TaxasController : Controller
     {
-        private const string API_VERSION = "2";
         private readonly IMediator _mediator;
+        private const string API_VERSION = "2";
+        private const string CONTENT_TYPE_PRODUCER = "application/json";
+        private readonly ICacheService _cacheService;
 
-        public TaxasController(IMediator mediator)
+        public TaxasController(IMediator mediator, ICacheService cacheService)
         {
             _mediator = mediator;
+            _cacheService = cacheService;
         }
 
         [HttpGet]
+        [Route("{segmento}/string")]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> ObterTaxaCobrancaPorSegmento([FromServices] ICacheService cacheService, [FromQuery] string segmento)
+        public async Task<IActionResult> ObterTaxaCobrancaPorSegmentoAsString(string segmento)
         {
-            var response = await cacheService.GetCacheValueAsString(segmento);
-            if (string.IsNullOrEmpty(response))
-                return BadRequest();
+            var responseAsString = await _cacheService.GetCacheValueAsString($"STRING-{segmento}");
+            if (string.IsNullOrEmpty(responseAsString))
+                return NotFound();
 
-            return Ok(response);
+            return Content(responseAsString, CONTENT_TYPE_PRODUCER);
+        }
+
+        [HttpGet]
+        [Route("{segmento}/byte")]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> ObterTaxaCobrancaPorSegmentoAsByte(string segmento)
+        {
+            var responseAsByte = await _cacheService.GetCacheValueAsByte($"BYTE-{segmento}");
+            if (responseAsByte is null)
+                return NotFound();
+
+            return File(responseAsByte, CONTENT_TYPE_PRODUCER);
         }
     }
 }

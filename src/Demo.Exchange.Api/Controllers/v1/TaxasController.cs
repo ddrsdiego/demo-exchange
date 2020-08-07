@@ -4,6 +4,7 @@
     using Demo.Exchange.Application.Commands.RegistrarNovaTaxa;
     using Demo.Exchange.Application.Models;
     using Demo.Exchange.Application.Queries.ObterTaxaCobrancaPorSegmento;
+    using Demo.Exchange.Infra.Connectors;
     using MediatR;
     using Microsoft.AspNetCore.Mvc;
     using System.Net;
@@ -17,10 +18,12 @@
     {
         private const string API_VERSION = "1";
         private readonly IMediator _mediator;
+        private readonly IValuesApiConnector _valuesApiConnector;
 
-        public TaxasController(IMediator mediator)
+        public TaxasController(IMediator mediator, IValuesApiConnector valuesApiConnector)
         {
             _mediator = mediator;
+            _valuesApiConnector = valuesApiConnector;
         }
 
         [HttpGet]
@@ -60,6 +63,13 @@
                 return BadRequest(response.ErrorResponse);
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("values")]
+        public async Task<IActionResult> GetValues()
+        {
+            return Ok(await _valuesApiConnector.GetValues());
         }
     }
 }

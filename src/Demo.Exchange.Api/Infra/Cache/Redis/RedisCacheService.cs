@@ -7,26 +7,34 @@
 
     public class RedisCacheService : ICacheService
     {
-        private readonly IConnectionMultiplexer _connectionMultiplexer;
         private readonly ITracer _tracer;
+        private readonly IConnectionMultiplexer _connectionMultiplexer;
 
         public RedisCacheService(IConnectionMultiplexer connectionMultiplexer, ITracer tracer)
         {
-            _connectionMultiplexer = connectionMultiplexer;
             _tracer = tracer;
+            _connectionMultiplexer = connectionMultiplexer;
         }
 
-        public async Task<T> GetCacheValue<T>(string key)
+        public async ValueTask<T> GetCacheValue<T>(string key)
         {
             var operation = $"RedisCacheService::GetCacheValue::{key}";
             using var scope = _tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true);
             {
-                var value = await GetCacheValueAsString(key);
-                return JsonSerializer.Deserialize<T>(value);
+                return JsonSerializer.Deserialize<T>(await GetCacheValueAsString(key));
             }
         }
 
-        public async Task<string> GetCacheValueAsString(string key)
+        public async ValueTask<byte[]> GetCacheValueAsByte(string key)
+        {
+            var db = _connectionMultiplexer.GetDatabase();
+            var operation = $"RedisCacheService::GetCacheValueAsByte::{key}";
+
+            using var scope = _tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true);
+            return await db.StringGetAsync(key);
+        }
+
+        public async ValueTask<string> GetCacheValueAsString(string key)
         {
             var db = _connectionMultiplexer.GetDatabase();
             var operation = $"RedisCacheService::GetCacheValueAsString::{key}";
@@ -35,10 +43,26 @@
             return await db.StringGetAsync(key);
         }
 
-        public async Task SetCacheValue(string key, string value)
+        public async ValueTask SetCacheValueAsByte(string key, byte[] value)
         {
-            var db = _connectionMultiplexer.GetDatabase();
-            await db.StringSetAsync(key, value);
+            var operation = $"RedisCacheService::SetCacheValueAsByte::{key}";
+
+            using (var scope = _tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true))
+            {
+                var db = _connectionMultiplexer.GetDatabase();
+                await db.StringSetAsync(key, value);
+            }
+        }
+
+        public async ValueTask SetCacheValueAsString(string key, string value)
+        {
+            var operation = $"RedisCacheService::SetCacheValueAsString::{key}";
+
+            using (var scope = _tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true))
+            {
+                var db = _connectionMultiplexer.GetDatabase();
+                await db.StringSetAsync(key, value);
+            }
         }
     }
 }

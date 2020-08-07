@@ -2,6 +2,7 @@
 
 namespace Demo.Exchange.Application.Models
 {
+    [Serializable]
     public struct TaxaResponse
     {
         public string Id { get; set; }

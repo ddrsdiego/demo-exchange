@@ -6,13 +6,14 @@
     using Demo.Exchange.Infra.Repositories.Statements;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using OpenTracing;
     using System;
     using System.Threading.Tasks;
 
     public class TaxaCobrancaRepository : Repository, ITaxaCobrancaRepository
     {
-        public TaxaCobrancaRepository(ILoggerFactory logger, IOptions<ConnectionStringOptions> connectionString)
-            : base(logger.CreateLogger<TaxaCobrancaRepository>(), connectionString)
+        public TaxaCobrancaRepository(ILoggerFactory logger, ITracer tracer, IOptions<ConnectionStringOptions> connectionString)
+            : base(logger.CreateLogger<TaxaCobrancaRepository>(), tracer, connectionString)
         {
         }
 
@@ -21,10 +22,28 @@
         public async Task Atualizar(TaxaCobranca taxaCobranca) => await ExecutarAtualizar(taxaCobranca);
 
         public async Task<TaxaCobranca> ObterPorId(string id)
-            => await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterPorId, new { id }), id);
+        {
+            var operation = $"TaxaCobrancaRepository::ObterPorId::{id}";
+
+            using var scope = Tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true);
+            return await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterPorId,
+                new
+                {
+                    id
+                }), id);
+        }
 
         public async Task<TaxaCobranca> ObterTaxaCobrancaPorSegmento(string segmento)
-            => await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterTaxaCobrancaPorSegmento, new { segmento }), segmento);
+        {
+            var operation = $"TaxaCobrancaRepository::ObterTaxaCobrancaPorSegmento::{segmento}";
+
+            using var scope = Tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true);
+            return await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaDto>(TaxaCobrancaStatements.ObterTaxaCobrancaPorSegmento,
+                new
+                {
+                    segmento
+                }), segmento);
+        }
 
         private async Task ExecutarRegistrar(TaxaCobranca taxaCobranca)
         {

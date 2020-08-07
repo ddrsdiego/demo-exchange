@@ -4,10 +4,14 @@
 
     public interface ICacheService
     {
-        Task<T> GetCacheValue<T>(string key);
+        ValueTask<T> GetCacheValue<T>(string key);
 
-        Task<string> GetCacheValueAsString(string key);
+        ValueTask<string> GetCacheValueAsString(string key);
 
-        Task SetCacheValue(string key, string value);
+        ValueTask<byte[]> GetCacheValueAsByte(string key);
+
+        ValueTask SetCacheValueAsString(string key, string value);
+
+        ValueTask SetCacheValueAsByte(string key, byte[] value);
     }
 }

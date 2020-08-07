@@ -26,7 +26,11 @@
         private static IServiceCollection AddConnectors(this IServiceCollection services)
         {
             services.AddTransient<InjectOpenTracingHeaderHandler>();
+
+            services.AddScoped<IValuesApiConnector, ValuesApiConnector>();
             services.AddScoped<IExchangeRatesApiConnector, ExchangeRatesApiConnector>();
+
+            services.AddHttpClient(nameof(ValuesApiConnector)).AddHttpMessageHandler<InjectOpenTracingHeaderHandler>();
             services.AddHttpClient(nameof(ExchangeRatesApiConnector)).AddHttpMessageHandler<InjectOpenTracingHeaderHandler>();
 
             return services;

@@ -6,7 +6,6 @@
     using Demo.Exchange.Infra.Cache.Memcached;
     using MediatR;
     using Microsoft.Extensions.Logging;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -38,9 +37,11 @@
 
             var taxaResponse = TaxaCobranca.ConverterEntidadeParaResponse();
 
-            var taxaResponseAsString = JsonSerializer.Serialize(taxaResponse);
-            await _cacheService.SetCacheValue(taxaResponse.Id, taxaResponseAsString);
-            await _cacheService.SetCacheValue(taxaResponse.TipoSegmento, taxaResponseAsString);
+            await _cacheService.SetCacheValueAsString($"STRING-{taxaResponse.Id}", TaxaCobranca.TaxaResponseAsString());
+            await _cacheService.SetCacheValueAsString($"STRING-{taxaResponse.TipoSegmento}", TaxaCobranca.TaxaResponseAsString());
+
+            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.Id}", TaxaCobranca.TaxaResponseAsByte());
+            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.TipoSegmento}", TaxaCobranca.TaxaResponseAsByte());
 
             await _cacheRepository.Set(taxaResponse.Id, taxaResponse);
             await _cacheRepository.Set(taxaResponse.TipoSegmento, taxaResponse);
