@@ -1,13 +1,16 @@
-﻿using System;
-
-namespace Demo.Exchange.Application.Models
+﻿namespace Demo.Exchange.Application.Models
 {
+    using System;
+
     [Serializable]
-    public struct TaxaResponse
+    public readonly struct TaxaResponse
     {
-        public string Id { get; set; }
-        public string TipoSegmento { get; set; }
-        public decimal ValorTaxa { get; set; }
-        public DateTime CriadoEm { get; set; }
+        public TaxaResponse(string id, string tipoSegmento, decimal valorTaxa, DateTime criadoEm) =>
+            (Id, TipoSegmento, ValorTaxa, CriadoEm) = (id, tipoSegmento, valorTaxa, criadoEm);
+
+        public string Id { get; }
+        public string TipoSegmento { get; }
+        public decimal ValorTaxa { get; }
+        public DateTime CriadoEm { get; }
     }
 }

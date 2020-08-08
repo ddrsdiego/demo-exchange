@@ -17,15 +17,7 @@
     public static class TaxaCobrancaEx
     {
         public static TaxaResponse ConverterEntidadeParaResponse(this TaxaCobranca taxaCobranca)
-        {
-            return new TaxaResponse
-            {
-                Id = taxaCobranca.TaxaCobrancaId,
-                CriadoEm = taxaCobranca.CriadoEm,
-                ValorTaxa = taxaCobranca.ValorTaxa.Valor,
-                TipoSegmento = taxaCobranca.TipoSegmento.Id,
-            };
-        }
+            => new TaxaResponse(taxaCobranca.TaxaCobrancaId, taxaCobranca.TipoSegmento.Id, taxaCobranca.ValorTaxa.Valor, taxaCobranca.CriadoEm);
 
         public static byte[] TaxaResponseAsByte(this TaxaCobranca taxaCobranca) => ObjectToByteArray(ConverterEntidadeParaResponse(taxaCobranca));
 

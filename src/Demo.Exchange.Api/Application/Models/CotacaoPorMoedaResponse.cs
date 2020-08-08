@@ -1,17 +1,22 @@
 ﻿namespace Demo.Exchange.Application.Models
 {
-    public struct CotacaoPorMoedaResponse
+    public readonly struct CotacaoPorMoedaResponse
     {
-        public MoedaResponse MoedaDe { get; set; }
-        public MoedaResponse MoedaPara { get; set; }
-        public decimal TaxaConversao { get; set; }
-        public decimal QuantidadeDesejada { get; set; }
-        public decimal ValorCotacao { get; set; }
+        public CotacaoPorMoedaResponse(MoedaResponse moedaDe, MoedaResponse moedaPara, decimal taxaConversao, decimal quantidadeDesejada, decimal valorCotacao) =>
+            (MoedaDe, MoedaPara, TaxaConversao, QuantidadeDesejada, ValorCotacao) = (moedaDe, moedaPara, taxaConversao, quantidadeDesejada, valorCotacao);
+
+        public MoedaResponse MoedaDe { get; }
+        public MoedaResponse MoedaPara { get; }
+        public decimal TaxaConversao { get; }
+        public decimal QuantidadeDesejada { get; }
+        public decimal ValorCotacao { get; }
     }
 
-    public struct MoedaResponse
+    public readonly struct MoedaResponse
     {
-        public string Moeda { get; set; }
-        public decimal ValorUnitario { get; set; }
+        public MoedaResponse(string moeda, decimal valorUnitario) => (Moeda, ValorUnitario) = (moeda, valorUnitario);
+
+        public string Moeda { get; }
+        public decimal ValorUnitario { get; }
     }
 }
