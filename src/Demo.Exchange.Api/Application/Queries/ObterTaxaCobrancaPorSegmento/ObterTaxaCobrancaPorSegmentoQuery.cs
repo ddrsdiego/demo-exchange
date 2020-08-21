@@ -13,4 +13,14 @@
 
         public override Response Response => new ObterTaxaCobrancaPorSegmentoResponse(RequestId);
     }
+
+    public readonly struct ObterTaxaCobrancaPorSegmentoQueryStruct : IRequest<ObterTaxaCobrancaPorSegmentoResponseStruct>
+    {
+        public ObterTaxaCobrancaPorSegmentoQueryStruct(string tipoSegmento)
+        {
+            TipoSegmento = tipoSegmento;
+        }
+
+        public string TipoSegmento { get; }
+    }
 }

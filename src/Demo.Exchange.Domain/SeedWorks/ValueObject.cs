@@ -42,12 +42,7 @@
             return !thisValues.MoveNext() && !otherValues.MoveNext();
         }
 
-        public override int GetHashCode()
-        {
-            return GetAtomicValues()
-             .Select(x => x != null ? x.GetHashCode() : 0)
-             .Aggregate((x, y) => x ^ y);
-        }
+        public override int GetHashCode() => GetAtomicValues().Select(x => x != null ? x.GetHashCode() : 0).Aggregate((x, y) => x ^ y);
 
         public ValueObject GetCopy() => MemberwiseClone() as ValueObject;
     }

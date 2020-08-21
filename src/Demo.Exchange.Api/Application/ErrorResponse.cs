@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace Demo.Exchange.Application
+﻿namespace Demo.Exchange.Application
 {
-    public struct ErrorResponse
+    using System;
+
+    public readonly struct ErrorResponse
     {
         public ErrorResponse(Error error)
             : this(Guid.NewGuid().ToString(), error)

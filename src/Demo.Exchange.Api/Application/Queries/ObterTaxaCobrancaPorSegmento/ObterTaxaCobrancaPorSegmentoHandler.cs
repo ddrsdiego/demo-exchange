@@ -3,7 +3,7 @@
     using Demo.Exchange.Application.Commands.RegistrarNovaTaxa;
     using Demo.Exchange.Application.Models;
     using Demo.Exchange.Domain.AggregateModel.TaxaModel;
-    using Demo.Exchange.Infra.Cache.Memcached;
+    using Demo.Exchange.Infra.Cache;
     using MediatR;
     using Microsoft.Extensions.Logging;
     using System.Threading;
@@ -11,13 +11,13 @@
 
     public class ObterTaxaCobrancaPorSegmentoHandler : Handler, IRequestHandler<ObterTaxaCobrancaPorSegmentoQuery, ObterTaxaCobrancaPorSegmentoResponse>
     {
-        private readonly ICacheProvider _cacheProvider;
+        private readonly ICacheService _cacheService;
         private readonly ITaxaCobrancaRepository _taxaCobrancaRepository;
 
-        public ObterTaxaCobrancaPorSegmentoHandler(IMediator mediator, ILoggerFactory logger, ITaxaCobrancaRepository taxaCobrancaRepository, ICacheProvider cacheProvider)
+        public ObterTaxaCobrancaPorSegmentoHandler(IMediator mediator, ILoggerFactory logger, ITaxaCobrancaRepository taxaCobrancaRepository, ICacheService cacheService)
             : base(mediator, logger.CreateLogger<ObterTaxaCobrancaPorSegmentoHandler>())
         {
-            _cacheProvider = cacheProvider;
+            _cacheService = cacheService;
             _taxaCobrancaRepository = taxaCobrancaRepository;
         }
 
@@ -25,21 +25,14 @@
         {
             var response = (ObterTaxaCobrancaPorSegmentoResponse)request.Response;
 
-            var tipoSegmento = TipoSegmento.ObterPorId(request.TipoSegmento);
+            var tipoSegmento = TipoSegmento.ObterPorIdIf(request.TipoSegmento);
             if (tipoSegmento is null)
             {
                 response.AddError(Errors.General.NotFound("TipoSegmento", request.TipoSegmento));
                 return response;
             }
 
-            var tipoSegmentoResponse = await _cacheProvider.GetValueOrCreate(tipoSegmento.Id,
-                                                                             async () => await ObterTaxaCobrancaPorSegmento(request, response, tipoSegmento));
-
-            if (tipoSegmentoResponse.Equals(default(TaxaResponse)))
-            {
-                response.AddError(Errors.General.NotFound("Segmento", request.TipoSegmento));
-                return response;
-            }
+            var tipoSegmentoResponse = await _cacheService.GetCacheValueAsString($"STACKEXCHANGE-STRING-{tipoSegmento.Id}");
 
             response.SetPayLoad(tipoSegmentoResponse);
 

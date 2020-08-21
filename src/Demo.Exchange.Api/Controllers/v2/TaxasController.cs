@@ -5,6 +5,7 @@
     using MediatR;
     using Microsoft.AspNetCore.Mvc;
     using System.Net;
+    using System.Net.Mime;
     using System.Threading.Tasks;
 
     [ApiController]
@@ -31,11 +32,11 @@
         [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> ObterTaxaCobrancaPorSegmentoAsString(string segmento)
         {
-            var responseAsString = await _cacheService.GetCacheValueAsString($"STRING-{segmento}");
+            var responseAsString = await _cacheService.GetCacheValueAsString($"STACKEXCHANGE-STRING-{segmento}");
             if (string.IsNullOrEmpty(responseAsString))
                 return NotFound();
 
-            return Content(responseAsString, CONTENT_TYPE_PRODUCER);
+            return Content(responseAsString, MediaTypeNames.Application.Json);
         }
 
         [HttpGet]

@@ -1,13 +1,10 @@
-﻿using System;
-
-namespace Demo.Exchange.Application
+﻿namespace Demo.Exchange.Application
 {
+    using System;
+
     public abstract class Request
     {
-        protected Request(string requestId)
-        {
-            RequestId = requestId;
-        }
+        protected Request(string requestId) => RequestId = requestId;
 
         protected Request()
             : this(Guid.NewGuid().ToString())

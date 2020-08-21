@@ -4,11 +4,16 @@
 
     public class AtualizarTaxaCommand : Request, IRequest<AtualizarTaxaResponse>
     {
-        public string Id { get; private set; }
-        public decimal NovaTaxa { get; set; }
+        public AtualizarTaxaCommand(string id, decimal novaTaxa) => (Id, NovaTaxa) = (id, novaTaxa);
 
-        public void SetId(string id) => Id = id;
+        public string Id { get; }
+        public decimal NovaTaxa { get; }
 
         public override Response Response => new AtualizarTaxaResponse(RequestId);
+    }
+
+    public struct AtualizarTaxaRequest
+    {
+        public decimal NovaTaxa { get; set; }
     }
 }

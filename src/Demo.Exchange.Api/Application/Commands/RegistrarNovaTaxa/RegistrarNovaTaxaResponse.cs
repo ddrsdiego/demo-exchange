@@ -21,7 +21,10 @@
 
         public static byte[] TaxaResponseAsByte(this TaxaCobranca taxaCobranca) => ObjectToByteArray(ConverterEntidadeParaResponse(taxaCobranca));
 
-        public static string TaxaResponseAsString(this TaxaCobranca taxaCobranca) => JsonSerializer.Serialize(ConverterEntidadeParaResponse(taxaCobranca));
+        public static string TaxaResponseAsString(this TaxaCobranca taxaCobranca) => JsonSerializer.Serialize(ConverterEntidadeParaResponse(taxaCobranca), new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
 
         private static byte[] ObjectToByteArray(object obj)
         {

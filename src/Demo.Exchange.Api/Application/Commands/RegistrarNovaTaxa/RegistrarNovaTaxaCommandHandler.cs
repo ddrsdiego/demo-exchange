@@ -60,13 +60,11 @@
 
         private void ObterTipoSegmentoPorId(RegistrarNovaTaxaCommand request, RegistrarNovaTaxaResponse response)
         {
-            TipoSegmento = TipoSegmento.ObterPorId(request.Segmento);
+            TipoSegmento = TipoSegmento.ObterPorIdFor(request.Segmento);
             if (TipoSegmento is null)
             {
                 response.AddError(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
-
                 Logger.LogWarning($"{response.ErrorResponse}");
-                return;
             }
         }
 

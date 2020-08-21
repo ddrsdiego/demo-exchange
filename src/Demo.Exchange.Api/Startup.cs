@@ -32,9 +32,7 @@ namespace Demo.Exchange.Api
             app.UseConfigDemoExchangeApp();
 
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseRouting();
             app.UseAuthorization();

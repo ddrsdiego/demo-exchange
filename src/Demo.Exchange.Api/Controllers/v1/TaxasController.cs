@@ -8,6 +8,7 @@
     using MediatR;
     using Microsoft.AspNetCore.Mvc;
     using System.Net;
+    using System.Net.Mime;
     using System.Threading.Tasks;
 
     [ApiController]
@@ -32,20 +33,21 @@
         [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> ObterTaxaCobrancaPorSegmento([FromQuery] string segmento)
         {
-            var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery(segmento));
+            //var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery(segmento));
+            var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQueryStruct(segmento));
             if (response.IsFailure)
                 return BadRequest(response.ErrorResponse);
 
-            return Ok(response.PayLoad);
+            return Content(response.PayLoad, MediaTypeNames.Application.Json);
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.Created)]
-        public async Task<IActionResult> RegistrarNovaTaxa([FromBody] RegistrarNovaTaxaCommand command)
+        public async Task<IActionResult> RegistrarNovaTaxa([FromBody] RegistrarNovaTaxaRequest request)
         {
-            var response = await _mediator.Send(command);
+            var response = await _mediator.Send(new RegistrarNovaTaxaCommand(request.Segmento, request.ValorTaxa));
             if (response.IsFailure)
                 return BadRequest(response.ErrorResponse);
 
@@ -54,11 +56,9 @@
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> AtualizarTaxa(string id, [FromBody] AtualizarTaxaCommand command)
+        public async Task<IActionResult> AtualizarTaxa(string id, [FromBody] AtualizarTaxaRequest request)
         {
-            command.SetId(id);
-
-            var response = await _mediator.Send(command);
+            var response = await _mediator.Send(new AtualizarTaxaCommand(id, request.NovaTaxa));
             if (response.IsFailure)
                 return BadRequest(response.ErrorResponse);
 

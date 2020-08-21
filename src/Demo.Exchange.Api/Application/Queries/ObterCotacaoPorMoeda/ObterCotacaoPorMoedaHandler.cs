@@ -93,7 +93,7 @@
 
         private void ObterTipoSegmentoPorId(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
         {
-            TipoSegmento = TipoSegmento.ObterPorId(request.Segmento);
+            TipoSegmento = TipoSegmento.ObterPorIdIf(request.Segmento);
             if (TipoSegmento is null)
             {
                 response.AddError(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
@@ -152,7 +152,7 @@
             {
                 var invalidQueryParameters = Errors.General
                                                 .InvalidQueryParameters()
-                                                .AddErroDetail(Errors.General.InvalidArgument($"ParametroCalculoModeInvalidos", string.Join("|", resultadoValorContacao.Messages)));
+                                                .AddErroDetail(Errors.General.InvalidArgument("ParametroCalculoModeInvalidos", string.Join("|", resultadoValorContacao.Messages)));
                 response.AddError(invalidQueryParameters);
             }
 

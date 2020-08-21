@@ -10,6 +10,7 @@
         Task<TaxaCobranca> ObterPorId(string id);
 
         Task<TaxaCobranca> ObterTaxaCobrancaPorSegmento(string segmento);
+        Task<TaxaCobranca> ObterTaxaCobrancaPorSegmentoClass(string segmento);
 
         Task Atualizar(TaxaCobranca taxaCobranca);
     }

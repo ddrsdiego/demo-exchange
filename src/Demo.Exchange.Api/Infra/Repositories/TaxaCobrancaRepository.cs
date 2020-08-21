@@ -45,6 +45,18 @@
                 }), segmento);
         }
 
+        public async Task<TaxaCobranca> ObterTaxaCobrancaPorSegmentoClass(string segmento)
+        {
+            var operation = $"TaxaCobrancaRepository::ObterTaxaCobrancaPorSegmento::{segmento}";
+
+            using var scope = Tracer.BuildSpan(operation).StartActive(finishSpanOnDispose: true);
+            return await ExecutaConsultaEConversao(async _ => await GetConnection().QueryFirstOrDefaultAsync<TaxaCobrancaClassDto>(TaxaCobrancaStatements.ObterTaxaCobrancaPorSegmento,
+                new
+                {
+                    segmento
+                }), segmento);
+        }
+
         private async Task ExecutarRegistrar(TaxaCobranca taxaCobranca)
         {
             try
@@ -101,6 +113,19 @@
 
             return dto.ConverterDtoParaEntidade();
         }
+
+        private async Task<TaxaCobranca> ExecutaConsultaEConversao<T>(Func<T, Task<TaxaCobrancaClassDto>> func, T parameter)
+        {
+            if (func is null)
+                throw new ArgumentNullException(nameof(func));
+
+            var dto = await func(parameter).ConfigureAwait(false);
+            if (dto.Equals(default(TaxaCobrancaDto)))
+                return TaxaCobranca.EntidadeDefault();
+
+            return dto.ConverterDtoParaEntidade();
+        }
+
     }
 
     internal struct TaxaCobrancaDto
@@ -110,7 +135,16 @@
         public string Segmento { get; set; }
         public DateTime CriadoEm { get; set; }
         public DateTime AtualizadoEm { get; set; }
+        public TaxaCobranca ConverterDtoParaEntidade() => new TaxaCobranca(TaxaCobrancaId, ValorTaxa, Segmento);
+    }
 
+    internal class TaxaCobrancaClassDto
+    {
+        public string TaxaCobrancaId { get; set; }
+        public decimal ValorTaxa { get; set; }
+        public string Segmento { get; set; }
+        public DateTime CriadoEm { get; set; }
+        public DateTime AtualizadoEm { get; set; }
         public TaxaCobranca ConverterDtoParaEntidade() => new TaxaCobranca(TaxaCobrancaId, ValorTaxa, Segmento);
     }
 }

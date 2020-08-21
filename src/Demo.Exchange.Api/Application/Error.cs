@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Text.Json.Serialization;
 
-    public struct Error
+    public readonly struct Error
     {
         public Error(string code, string message)
             : this(code, message, StatusCodes.Status400BadRequest)
@@ -30,9 +30,6 @@
             if (error.Code.Equals(Code, StringComparison.InvariantCultureIgnoreCase))
                 throw new ArgumentNullException(nameof(error.Code));
 
-            if (Details is null)
-                Details = new List<Error>();
-
             if (Details.Any(x => x.Code.Equals(error.Code, StringComparison.InvariantCultureIgnoreCase)))
                 return error;
 
@@ -41,6 +38,6 @@
             return this;
         }
 
-        public List<Error> Details { get; private set; }
+        public List<Error> Details { get; }
     }
 }

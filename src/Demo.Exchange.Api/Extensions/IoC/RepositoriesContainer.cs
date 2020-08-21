@@ -20,6 +20,8 @@
                 ConnectionMultiplexer.Connect(configuration.GetValue<string>("ConnectionStrings:RedisConnectionString")));
             services.AddScoped<ICacheService, RedisCacheService>();
 
+            services.AddStackExchangeRedisCache(options => options.Configuration = "localhost:6379");
+
             return services;
         }
 

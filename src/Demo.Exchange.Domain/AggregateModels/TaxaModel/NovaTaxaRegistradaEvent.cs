@@ -1,7 +1,7 @@
-﻿using MediatR;
-
-namespace Demo.Exchange.Domain.AggregateModel.TaxaModel
+﻿namespace Demo.Exchange.Domain.AggregateModel.TaxaModel
 {
+    using MediatR;
+
     public class NovaTaxaRegistradaEvent : INotification
     {
         public NovaTaxaRegistradaEvent(TaxaCobranca taxaCobranca)

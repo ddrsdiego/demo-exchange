@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Demo.Exchange.Api\Demo.Exchange.Api.csproj" />
+    <ProjectReference Include="..\..\src\Demo.Exchange.Domain\Demo.Exchange.Domain.csproj" />
   </ItemGroup>
 
 </Project>

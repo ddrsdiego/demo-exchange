@@ -14,7 +14,7 @@
         public TaxaCobranca(string id, ValorTaxaCobranca valor, TipoSegmento tipoSegmento)
         {
             TaxaCobrancaId = id ?? throw new ArgumentException(nameof(id));
-            ValorTaxa = valor ?? throw new ArgumentException(nameof(valor));
+            ValorTaxa = valor;
             TipoSegmento = tipoSegmento ?? throw new ArgumentException(nameof(tipoSegmento));
 
             AddDomainEvent(new NovaTaxaRegistradaEvent(this));

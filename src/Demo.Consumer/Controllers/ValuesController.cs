@@ -52,12 +52,10 @@ namespace Demo.Consumer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<string>>> Get()
         {
-            var headers = Request.Headers.ToDictionary(k => k.Key, v => v.Value.First());
-            using (var scope = StartServerSpan(_tracer, headers, "producingValues"))
-            {
-                await Task.Delay(2000);
-                return new[] { "Hello", "OpenTracing!" };
-            }
+            var headers = Request.Headers.ToDictionary(k => k.Key, v => v.Value[0]);
+            using var scope = StartServerSpan(_tracer, headers, "producingValues");
+            await Task.Delay(2000);
+            return new[] { "Hello", "OpenTracing!" };
         }
 
         public static IScope StartServerSpan(ITracer tracer, IDictionary<string, string> headers, string operationName)
