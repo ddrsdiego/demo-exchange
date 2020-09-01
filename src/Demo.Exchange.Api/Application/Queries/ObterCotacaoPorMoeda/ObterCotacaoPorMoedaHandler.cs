@@ -44,9 +44,7 @@
 
         public async Task<Response> Handle(ObterCotacaoPorMoedaQuery request, CancellationToken cancellationToken)
         {
-            Response response;
-
-            response = ObterCotacaoPorMoedaQueryValidator.ValidarQuery(request);
+            Response response = ObterCotacaoPorMoedaQueryValidator.ValidarQuery(request);
             if (response.IsFailure)
                 return response;
 

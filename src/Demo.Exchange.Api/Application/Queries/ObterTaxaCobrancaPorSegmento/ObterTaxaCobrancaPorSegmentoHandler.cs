@@ -16,10 +16,10 @@
         private readonly ITaxaCobrancaRepository _taxaCobrancaRepository;
 
         public ObterTaxaCobrancaPorSegmentoHandler(IMediator mediator,
-                                                            ILoggerFactory logger,
-                                                            ITaxaCobrancaRepository taxaCobrancaRepository,
-                                                            ICacheProvider cacheProvider,
-                                                            ICacheService cacheService)
+                                                   ILoggerFactory logger,
+                                                   ITaxaCobrancaRepository taxaCobrancaRepository,
+                                                   ICacheProvider cacheProvider,
+                                                   ICacheService cacheService)
             : base(mediator, logger.CreateLogger<ObterTaxaCobrancaPorSegmentoHandler>())
         {
             _cacheService = cacheService;
