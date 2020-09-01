@@ -9,9 +9,9 @@
     using System.Diagnostics;
     using System.Threading.Tasks;
 
+    [RankColumn]
     [MemoryDiagnoser]
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    [RankColumn]
     public class ObterTaxaCobrancaPorSegmentoBenchmarks
     {
         private IMediator mediator;
@@ -30,14 +30,21 @@
         public async Task ObterTaxaCobrancaPorSegmentoQuery()
         {
             var response = await mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery("varejo"));
-            Debug.WriteLine(response.PayLoad);
+            Debug.WriteLine(response.Content.ValueAsJsonString);
         }
 
         [Benchmark]
-        public async Task ObterTaxaCobrancaPorSegmentoQueryStruct()
+        public async Task ObterTaxaCobrancaPorSegmentoQueryStrig()
         {
-            var response = await mediator.Send(new ObterTaxaCobrancaPorSegmentoQueryStruct("varejo"));
-            Debug.WriteLine(response.PayLoad);
+            var response = await mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery("varejo"));
+            Debug.WriteLine(response.Content.ValueAsJsonString);
+        }
+
+        [Benchmark]
+        public async Task ObterTaxaCobrancaPorSegmentoQueryByte()
+        {
+            var response = await mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery("varejo"));
+            Debug.WriteLine(response.Content.Value);
         }
     }
 }

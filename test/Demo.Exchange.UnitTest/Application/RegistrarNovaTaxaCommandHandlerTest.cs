@@ -1,6 +1,7 @@
 ﻿namespace Demo.Exchange.UnitTest.Application
 {
     using Demo.Exchange.Application.Commands.RegistrarNovaTaxa;
+    using Demo.Exchange.Application.Models;
     using Demo.Exchange.Domain.AggregateModel.TaxaModel;
     using Demo.Exchange.UnitTest.FakesData;
     using FluentAssertions;
@@ -140,9 +141,11 @@
             //assert
             await taxaCobrancaRepository.Received(1).Registrar(Arg.Any<TaxaCobranca>());
 
+            var taxaResponse = resultado.Content.GetRaw<TaxaResponse>();
+
             resultado.IsSuccess.Should().BeTrue();
-            resultado.PayLoad.ValorTaxa.Should().Be(VALOR_TAXA_ESPERADO);
-            resultado.PayLoad.TipoSegmento.Should().Be(TipoSegmento.Varejo.Id);
+            taxaResponse.ValorTaxa.Should().Be(VALOR_TAXA_ESPERADO);
+            taxaResponse.TipoSegmento.Should().Be(TipoSegmento.Varejo.Id);
         }
 
         private RegistrarNovaTaxaCommandHandler CreateSut() => new RegistrarNovaTaxaCommandHandler(mediator, logger, taxaCobrancaRepository);

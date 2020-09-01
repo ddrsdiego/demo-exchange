@@ -2,7 +2,7 @@
 {
     using MediatR;
 
-    public class ObterCotacaoPorMoedaQuery : Request, IRequest<ObterCotacaoPorMoedaResponse>
+    public readonly struct ObterCotacaoPorMoedaQuery : IRequest<Response>
     {
         public ObterCotacaoPorMoedaQuery(string segmento, string moeda, decimal quantidade)
         {
@@ -14,7 +14,5 @@
         public string Segmento { get; }
         public string Moeda { get; }
         public decimal Quantidade { get; }
-
-        public override Response Response => new ObterCotacaoPorMoedaResponse(RequestId);
     }
 }

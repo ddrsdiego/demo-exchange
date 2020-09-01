@@ -8,7 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class RegistrarNovaTaxaCommandHandler : Handler, IRequestHandler<RegistrarNovaTaxaCommand, RegistrarNovaTaxaResponse>
+    public class RegistrarNovaTaxaCommandHandler : Handler, IRequestHandler<RegistrarNovaTaxaCommand, Response>
     {
         private TaxaCobranca TaxaCobranca;
         private TipoSegmento TipoSegmento;
@@ -21,72 +21,71 @@
             _taxaCobrancaRepository = taxaCobrancaRepository;
         }
 
-        public async Task<RegistrarNovaTaxaResponse> Handle(RegistrarNovaTaxaCommand request, CancellationToken cancellationToken)
+        public async Task<Response> Handle(RegistrarNovaTaxaCommand request, CancellationToken cancellationToken)
         {
-            var response = (RegistrarNovaTaxaResponse)request.Response;
-
-            RegistrarNovaTaxaCommandValidator.ValidarCommand(request, response);
+            Response response = RegistrarNovaTaxaCommandValidator.ValidarCommand(request);
             if (response.IsFailure)
                 return response;
 
             var valorTaxaCobranca = ValorTaxaCobranca.Create(request.ValorTaxa);
             if (valorTaxaCobranca.IsFailure)
             {
-                response.AddError(Errors.General.InvalidCommandArguments()
-                                                .AddErroDetail(Errors.General.InvalidArgument("ValorTaxaInvalido", string.Join("|", valorTaxaCobranca.Messages))));
-                return response;
+                return Response.Fail(Errors.General.InvalidCommandArguments()
+                                            .AddErroDetail(Errors.General.InvalidArgument("ValorTaxaInvalido", string.Join("|", valorTaxaCobranca.Messages))));
             }
 
-            ObterTipoSegmentoPorId(request, response);
+            response = ObterTipoSegmentoPorId(request);
             if (response.IsFailure)
                 return response;
 
-            await VerficarSegmentoJaRegistrado(request, response);
+            response = await VerficarSegmentoJaRegistrado();
             if (response.IsFailure)
                 return response;
 
             TaxaCobranca = new TaxaCobranca(Guid.NewGuid().ToString(), valorTaxaCobranca.Value, TipoSegmento);
 
-            await Registrar(request, response);
+            response = await Registrar();
             if (response.IsFailure)
                 return response;
 
             await Mediator.DispatchDomainEvents(TaxaCobranca);
 
-            response.SetPayLoad(TaxaCobranca.ConverterEntidadeParaResponse());
+            return Response.Ok(ResponseContent.Create(TaxaCobranca.ConverterEntidadeParaResponse()));
+        }
+
+        private Response ObterTipoSegmentoPorId(RegistrarNovaTaxaCommand request)
+        {
+            var response = Response.Ok();
+
+            TipoSegmento = TipoSegmento.ObterPorIdFor(request.Segmento);
+            if (TipoSegmento is null)
+            {
+                response = Response.Fail(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
+                Logger.LogWarning($"{response.ErrorResponse}");
+
+                return response;
+            }
 
             return response;
         }
 
-        private void ObterTipoSegmentoPorId(RegistrarNovaTaxaCommand request, RegistrarNovaTaxaResponse response)
-        {
-            TipoSegmento = TipoSegmento.ObterPorIdFor(request.Segmento);
-            if (TipoSegmento is null)
-            {
-                response.AddError(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
-                Logger.LogWarning($"{response.ErrorResponse}");
-            }
-        }
-
-        private async Task VerficarSegmentoJaRegistrado(RegistrarNovaTaxaCommand request, RegistrarNovaTaxaResponse response)
+        private async Task<Response> VerficarSegmentoJaRegistrado()
         {
             try
             {
                 TaxaCobranca = await _taxaCobrancaRepository.ObterTaxaCobrancaPorSegmento(TipoSegmento.Id);
                 if (!string.IsNullOrEmpty(TaxaCobranca.TaxaCobrancaId))
-                {
-                    response.AddError(Errors.RegistrarNovaTaxaErros.TaxaParaSegmentoJaRegistrada(TipoSegmento.Id));
-                    return;
-                }
+                    return Response.Fail(Errors.RegistrarNovaTaxaErros.TaxaParaSegmentoJaRegistrada(TipoSegmento.Id));
             }
             catch (Exception ex)
             {
-                response.AddError(Errors.General.InternalProcessError("VerficarSegmentoJaRegistrado", ex.Message));
-                return;
+                return Response.Fail(Errors.General.InternalProcessError("VerficarSegmentoJaRegistrado", ex.Message));
             }
+
+            return Response.Ok();
         }
 
-        private async Task Registrar(RegistrarNovaTaxaCommand request, RegistrarNovaTaxaResponse response)
+        private async Task<Response> Registrar()
         {
             try
             {
@@ -94,9 +93,10 @@
             }
             catch (Exception ex)
             {
-                response.AddError(Errors.General.InternalProcessError("VerficarSegmentoJaRegistrado", ex.Message));
-                return;
+                return Response.Fail(Errors.General.InternalProcessError("VerficarSegmentoJaRegistrado", ex.Message));
             }
+
+            return Response.Ok();
         }
     }
 }

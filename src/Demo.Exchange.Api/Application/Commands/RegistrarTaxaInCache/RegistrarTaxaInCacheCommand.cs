@@ -1,15 +1,16 @@
 ﻿namespace Demo.Exchange.Application.Commands.RegistrarTaxaInCache
 {
     using MediatR;
+    using System;
 
-    public class RegistrarTaxaInCacheCommand : Request, IRequest<RegistrarTaxaInCacheResponse>
+    public readonly struct RegistrarTaxaInCacheCommand : IRequest<Response>
     {
         public RegistrarTaxaInCacheCommand(string id)
-        {
-            Id = id;
-        }
+            : this(Guid.NewGuid().ToString(), id) => Id = id;
+
+        public RegistrarTaxaInCacheCommand(string requestId, string id) => (RequestId, Id) = (requestId, id);
 
         public string Id { get; }
-        public override Response Response => new RegistrarTaxaInCacheResponse(RequestId);
+        public string RequestId { get; }
     }
 }

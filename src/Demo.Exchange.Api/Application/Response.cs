@@ -1,48 +1,68 @@
 ﻿namespace Demo.Exchange.Application
 {
+    using Microsoft.AspNetCore.Http;
+    using System;
     using System.Collections.Generic;
-    using System.Text.Json;
     using System.Text.Json.Serialization;
 
-    public abstract class Response<TOut> : Response
+    public readonly struct Response
     {
-        protected Response(string requestId)
-            : base(requestId)
+        private Response(int statusCode, ResponseContent content, ErrorResponse errorResponse)
         {
+            Content = content;
+            ErrorResponse = errorResponse;
+            StatusCode = statusCode;
         }
 
-        public TOut PayLoad { get; protected set; }
+        public int StatusCode { get; }
+        public ResponseContent Content { get; }
+        public ErrorResponse ErrorResponse { get; }
 
-        public virtual void SetPayLoad(TOut outPayLoad) => PayLoad = outPayLoad;
-    }
+        public static Response Ok() => Ok(StatusCodes.Status200OK, new ResponseContent());
 
-    public abstract class Response
-    {
-        protected Response(string requestId) => RequestId = requestId;
-
-        protected Response(Request command) => Command = command;
-
-        [JsonIgnore] public Request Command { get; }
-
-        [JsonIgnore] public ErrorResponse ErrorResponse { get; private set; }
-
-        public void AddError(Error error)
+        public static Response Ok(ResponseContent content)
         {
-            if (Equals(error, default(Error)))
-                return;
+            if (content.Equals(default))
+                throw new ArgumentNullException(nameof(content));
 
-            ErrorResponse = new ErrorResponse(RequestId, error);
+            return new Response(StatusCodes.Status200OK, content, new ErrorResponse());
+        }
+
+        public static Response Ok(int statusCode, ResponseContent content)
+        {
+            if (statusCode < 200 || statusCode > 299)
+                throw new ArgumentException(nameof(statusCode));
+
+            if (content.Equals(default))
+                throw new ArgumentNullException(nameof(content));
+
+            return new Response(statusCode, content, new ErrorResponse());
+        }
+
+        public static Response Fail(Error error)
+        {
+            if (error.Equals(default))
+                throw new ArgumentNullException(nameof(error));
+
+            return new Response(StatusCodes.Status400BadRequest, new ResponseContent(), new ErrorResponse(error));
+        }
+
+        public static Response Fail(int statusCode, Error error)
+        {
+            if (statusCode >= 200 && statusCode <= 299)
+                throw new ArgumentException(nameof(statusCode));
+
+            if (error.Equals(default))
+                throw new ArgumentNullException(nameof(error));
+
+            return new Response(statusCode, new ResponseContent(), new ErrorResponse(error));
         }
 
         [JsonIgnore] public bool IsFailure => !IsSuccess;
 
         [JsonIgnore] public bool IsSuccess => VerifyResponseIsSuccess();
 
-        public string RequestId { get; }
-
         private bool VerifyResponseIsSuccess()
             => EqualityComparer<ErrorResponse>.Default.Equals(ErrorResponse, default) || EqualityComparer<Error>.Default.Equals(ErrorResponse.Error, default);
-
-        public override string ToString() => JsonSerializer.Serialize(this);
     }
 }
