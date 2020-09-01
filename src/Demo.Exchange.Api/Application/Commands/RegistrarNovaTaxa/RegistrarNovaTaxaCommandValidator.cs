@@ -2,7 +2,7 @@
 {
     using FluentValidation;
 
-    public class RegistrarNovaTaxaCommandValidator : AbstractValidator<RegistrarNovaTaxaCommand>
+    public sealed class RegistrarNovaTaxaCommandValidator : AbstractValidator<RegistrarNovaTaxaCommand>
     {
         private RegistrarNovaTaxaCommandValidator()
         {
@@ -17,22 +17,22 @@
                 .WithMessage("Valor Taxa não deve ser menor que zero.");
         }
 
-        public static void ValidarCommand(RegistrarNovaTaxaCommand request, RegistrarNovaTaxaResponse response)
+        public static Response ValidarCommand(RegistrarNovaTaxaCommand request)
         {
             var validator = new RegistrarNovaTaxaCommandValidator();
 
             var resultadoValidacao = validator.Validate(request);
-            if (!resultadoValidacao.IsValid)
+            if (resultadoValidacao.IsValid)
+                return Response.Ok();
+
+            var invalidCommandArguments = Errors.General.InvalidCommandArguments();
+
+            foreach (var erro in resultadoValidacao.Errors)
             {
-                var invalidCommandArguments = Errors.General.InvalidCommandArguments();
-
-                foreach (var erro in resultadoValidacao.Errors)
-                {
-                    invalidCommandArguments.AddErroDetail(Errors.General.InvalidArgument(erro.ErrorCode, erro.ErrorMessage));
-                }
-
-                response.AddError(invalidCommandArguments);
+                invalidCommandArguments.AddErroDetail(Errors.General.InvalidArgument(erro.ErrorCode, erro.ErrorMessage));
             }
+
+            return Response.Fail(invalidCommandArguments);
         }
     }
 }

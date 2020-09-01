@@ -31,14 +31,13 @@
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType(typeof(TaxaResponse), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> ObterTaxaCobrancaPorSegmento([FromQuery] string segmento)
+        public async ValueTask<IActionResult> ObterTaxaCobrancaPorSegmento([FromQuery] string segmento)
         {
-            //var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery(segmento));
-            var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQueryStruct(segmento));
+            var response = await _mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery(segmento));
             if (response.IsFailure)
                 return BadRequest(response.ErrorResponse);
 
-            return Content(response.PayLoad, MediaTypeNames.Application.Json);
+            return Content(response.Content.ValueAsJsonString, MediaTypeNames.Application.Json);
         }
 
         [HttpPost]
@@ -51,7 +50,8 @@
             if (response.IsFailure)
                 return BadRequest(response.ErrorResponse);
 
-            return Created($"{Request.Scheme}://{Request.Host}/api/v{API_VERSION}/taxas/{response.PayLoad.Id}", response.PayLoad);
+            var taxaResponse = response.Content.GetRaw<TaxaResponse>();
+            return Created($"{Request.Scheme}://{Request.Host}/api/v{API_VERSION}/taxas/{taxaResponse.Id}", taxaResponse);
         }
 
         [HttpPut]

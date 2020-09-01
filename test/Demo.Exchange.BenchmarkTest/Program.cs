@@ -2,6 +2,7 @@
 {
     using BenchmarkDotNet.Attributes;
     using BenchmarkDotNet.Engines;
+    using BenchmarkDotNet.Running;
     using Demo.Exchange.Application.Queries.ObterTaxaCobrancaPorSegmento;
     using MediatR;
     using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +13,7 @@
 
     public static class Program
     {
-        private const int COUNT = 100_000;
+        private const int COUNT = 1_000_000;
         private const int GEN_0 = 0;
         private const int GEN_1 = 1;
         private const int GEN_2 = 2;
@@ -23,40 +24,32 @@
             var serviceProvider = ContainerConfiguration.Configure();
             var mediator = serviceProvider.GetService<IMediator>();
 
-            //for (int i = 0; i < 10_000_000; i++)
-            //{
-            //    CreatePerson();
-            //}
-
-            //Console.WriteLine("Done");
-            //Console.ReadKey();
-
             //var benchmarks = new ObterTaxaCobrancaPorSegmentoBenchmarks();
             //benchmarks.GlobalSetup();
 
             //GC.Collect();
 
-            //var before0 = GC.CollectionCount(GEN_0);
-            //var before1 = GC.CollectionCount(GEN_1);
-            //var before2 = GC.CollectionCount(GEN_2);
+            var before0 = GC.CollectionCount(GEN_0);
+            var before1 = GC.CollectionCount(GEN_1);
+            var before2 = GC.CollectionCount(GEN_2);
 
-            //var sw = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
 
             var tasks = Enumerable.Range(0, COUNT).Select(async _ =>
             {
                 var response = await mediator.Send(new ObterTaxaCobrancaPorSegmentoQuery("varejo"));
-                Debug.WriteLine(response.PayLoad);
+                Debug.WriteLine(response.Content.Value);
             }).ToArray();
 
             Task.WhenAll(tasks).GetAwaiter();
 
-            //sw.Stop();
+            sw.Stop();
 
-            //Console.WriteLine($"\nTime: {sw.ElapsedMilliseconds} ms");
-            //Console.WriteLine($"#Gen 0 Time: {GC.CollectionCount(GEN_0) - before0}");
-            //Console.WriteLine($"#Gen 1 Time: {GC.CollectionCount(GEN_1) - before1}");
-            //Console.WriteLine($"#Gen 2 Time: {GC.CollectionCount(GEN_2) - before2}");
-            //Console.WriteLine($"Memory: {Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024} mb");
+            Console.WriteLine($"\nTime: {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"#Gen 0 Time: {GC.CollectionCount(GEN_0) - before0}");
+            Console.WriteLine($"#Gen 1 Time: {GC.CollectionCount(GEN_1) - before1}");
+            Console.WriteLine($"#Gen 2 Time: {GC.CollectionCount(GEN_2) - before2}");
+            Console.WriteLine($"Memory: {Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024} mb");
 
             //Console.ReadLine();
 

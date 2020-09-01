@@ -6,7 +6,7 @@
 
     public readonly struct ValorTaxaCobranca : IComparable<ValorTaxaCobranca>
     {
-        private ValorTaxaCobranca(decimal valor) => Valor = valor;
+        public ValorTaxaCobranca(decimal valor) => Valor = valor;
 
         public static Result<ValorTaxaCobranca> Create(decimal valor)
         {

@@ -10,7 +10,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class RegistrarTaxaInCacheCommandHandler : Handler, IRequestHandler<RegistrarTaxaInCacheCommand, RegistrarTaxaInCacheResponse>
+    public class RegistrarTaxaInCacheCommandHandler : Handler, IRequestHandler<RegistrarTaxaInCacheCommand, Response>
     {
         private TaxaCobranca TaxaCobranca;
 
@@ -33,27 +33,26 @@
             _distributedCache = distributedCache;
         }
 
-        public async Task<RegistrarTaxaInCacheResponse> Handle(RegistrarTaxaInCacheCommand request, CancellationToken cancellationToken)
+        public async Task<Response> Handle(RegistrarTaxaInCacheCommand request, CancellationToken cancellationToken)
         {
-            var response = (RegistrarTaxaInCacheResponse)request.Response;
-
             TaxaCobranca = await _taxaCobrancaRepository.ObterPorId(request.Id);
 
             var taxaResponse = TaxaCobranca.ConverterEntidadeParaResponse();
+            var responseContent = ResponseContent.Create(taxaResponse);
 
-            await _distributedCache.SetStringAsync($"DISTRIBUTEDCACHE-STRING-{taxaResponse.Id}", TaxaCobranca.TaxaResponseAsString());
-            await _distributedCache.SetStringAsync($"DISTRIBUTEDCACHE-STRING-{taxaResponse.TipoSegmento}", TaxaCobranca.TaxaResponseAsString());
+            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.Id}", responseContent.Value);
+            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.TipoSegmento}", responseContent.Value);
 
-            await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.Id}", TaxaCobranca.TaxaResponseAsString());
-            await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.TipoSegmento}", TaxaCobranca.TaxaResponseAsString());
+            await _distributedCache.SetStringAsync($"DISTRIBUTEDCACHE-STRING-{taxaResponse.Id}", responseContent.ValueAsJsonString);
+            await _distributedCache.SetStringAsync($"DISTRIBUTEDCACHE-STRING-{taxaResponse.TipoSegmento}", responseContent.ValueAsJsonString);
 
-            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.Id}", TaxaCobranca.TaxaResponseAsByte());
-            await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.TipoSegmento}", TaxaCobranca.TaxaResponseAsByte());
+            await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.Id}", responseContent.ValueAsJsonString);
+            await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.TipoSegmento}", responseContent.ValueAsJsonString);
 
             await _cacheRepository.Set(taxaResponse.Id, taxaResponse);
             await _cacheRepository.Set(taxaResponse.TipoSegmento, taxaResponse);
 
-            return response;
+            return Response.Ok(responseContent);
         }
     }
 }

@@ -13,7 +13,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class ObterCotacaoPorMoedaHandler : Handler, IRequestHandler<ObterCotacaoPorMoedaQuery, ObterCotacaoPorMoedaResponse>
+    public class ObterCotacaoPorMoedaHandler : Handler, IRequestHandler<ObterCotacaoPorMoedaQuery, Response>
     {
         private TipoSegmento TipoSegmento;
         private TaxaResponse TaxaResponse;
@@ -42,69 +42,81 @@
             _exchangeRatesApiConnector = exchangeRatesApiConnector;
         }
 
-        public async Task<ObterCotacaoPorMoedaResponse> Handle(ObterCotacaoPorMoedaQuery request, CancellationToken cancellationToken)
+        public async Task<Response> Handle(ObterCotacaoPorMoedaQuery request, CancellationToken cancellationToken)
         {
-            var response = (ObterCotacaoPorMoedaResponse)request.Response;
+            Response response;
 
-            ObterCotacaoPorMoedaQueryValidator.ValidarQuery(request, response);
+            response = ObterCotacaoPorMoedaQueryValidator.ValidarQuery(request);
             if (response.IsFailure)
                 return response;
 
-            ObterTipoSegmentoPorId(request, response);
+            response = ObterTipoSegmentoPorId(request);
             if (response.IsFailure)
                 return response;
 
-            await ObterTaxaCobrancaPorSegmento(request, response);
+            response = await ObterTaxaCobrancaPorSegmento(request);
             if (response.IsFailure)
                 return response;
 
-            await OberUltimaCotacaoPorMoeda(request, response);
+            response = await OberUltimaCotacaoPorMoeda(request);
             if (response.IsFailure)
                 return response;
 
-            ExecutarCalculoCotacao(request, response);
+            response = ExecutarCalculoCotacao(request);
             if (response.IsFailure)
                 return response;
 
-            CreateResponse(request, response);
+            response = CreateResponse(request);
+            if (response.IsFailure)
+                return response;
 
             return response;
         }
 
-        private async Task OberUltimaCotacaoPorMoeda(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        private async Task<Response> OberUltimaCotacaoPorMoeda(ObterCotacaoPorMoedaQuery request)
         {
+            var response = Response.Ok();
+
             try
             {
                 Cotacao = await _exchangeRatesApiConnector.OberUltimaCotacaoPorMoeda(request.Moeda);
                 if (Cotacao.Equals(default))
                 {
-                    response.AddError(Errors.General.NotFound("ModeEstrangeira", request.Moeda));
+                    response = Response.Fail(Errors.General.NotFound("ModeEstrangeira", request.Moeda));
                     Logger.LogWarning($"{response.ErrorResponse}");
 
-                    return;
+                    return response;
                 }
             }
             catch (Exception ex)
             {
-                response.AddError(Errors.General.InternalProcessError("OberUltimaCotacaoPorMoeda", ex.Message));
+                response = Response.Fail(Errors.General.InternalProcessError("OberUltimaCotacaoPorMoeda", ex.Message));
                 Logger.LogError(ex, $"{response.ErrorResponse}");
+
+                return response;
             }
+
+            return response;
         }
 
-        private void ObterTipoSegmentoPorId(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        private Response ObterTipoSegmentoPorId(ObterCotacaoPorMoedaQuery request)
         {
+            var requestResponse = Response.Ok();
+
             TipoSegmento = TipoSegmento.ObterPorIdIf(request.Segmento);
             if (TipoSegmento is null)
             {
-                response.AddError(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
-                Logger.LogWarning($"{response.ErrorResponse}");
-
-                return;
+                requestResponse = Response.Fail(Errors.General.NotFound(nameof(TipoSegmento), request.Segmento));
+                Logger.LogWarning($"{requestResponse.ErrorResponse}");
             }
+
+            return requestResponse;
         }
 
-        private async Task ObterTaxaCobrancaPorSegmento(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        private async Task<Response> ObterTaxaCobrancaPorSegmento(ObterCotacaoPorMoedaQuery request)
         {
+            var response = Response.Ok();
+
             try
             {
                 TaxaResponse = await ObterTaxaEstrategiCache(async () =>
@@ -118,16 +130,21 @@
 
                 if (string.IsNullOrEmpty(TaxaResponse.Id))
                 {
-                    response.AddError(Errors.General.NotFound(nameof(TaxaCobranca), request.Segmento));
+                    response = Response.Fail(Errors.General.NotFound(nameof(TaxaCobranca), request.Segmento));
                     Logger.LogWarning($"{response.ErrorResponse}");
-                    return;
+
+                    return response;
                 }
             }
             catch (Exception ex)
             {
-                response.AddError(Errors.General.InternalProcessError("ObterTaxaCobrancaPorSegmento", ex.Message));
+                response = Response.Fail(Errors.General.InternalProcessError("ObterTaxaCobrancaPorSegmento", ex.Message));
                 Logger.LogError(ex, $"{response.ErrorResponse}");
+
+                return response;
             }
+
+            return response;
         }
 
         private async Task<TaxaResponse> ObterTaxaEstrategiCache(Func<Task<TaxaResponse>> fromRepo, Func<Task<TaxaResponse>> fromCache)
@@ -143,8 +160,10 @@
             return taxaResponse;
         }
 
-        private void ExecutarCalculoCotacao(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        private Response ExecutarCalculoCotacao(ObterCotacaoPorMoedaQuery request)
         {
+            var response = Response.Ok();
+
             var formula = new ConversaoMoedaFormula(new ConversaoMoedaParametroInput(request.Quantidade, Cotacao.Value, TaxaResponse.ValorTaxa));
 
             var resultadoValorContacao = _cadernoFormulasService.Compute(formula);
@@ -153,22 +172,25 @@
                 var invalidQueryParameters = Errors.General
                                                 .InvalidQueryParameters()
                                                 .AddErroDetail(Errors.General.InvalidArgument("ParametroCalculoModeInvalidos", string.Join("|", resultadoValorContacao.Messages)));
-                response.AddError(invalidQueryParameters);
+                response = Response.Fail(invalidQueryParameters);
             }
 
             ValorConversao = resultadoValorContacao.Value;
+
+            return response;
         }
 
-        private void CreateResponse(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        private Response CreateResponse(ObterCotacaoPorMoedaQuery request)
         {
             const int VALOR_UNITARIO_MOEDA_LOCAL = 1;
 
-            response.SetPayLoad(new CotacaoPorMoedaResponse(
-                new MoedaResponse(Cotacao.Key, VALOR_UNITARIO_MOEDA_LOCAL),
-                new MoedaResponse(request.Moeda, Cotacao.Value),
-                TaxaResponse.ValorTaxa,
-                ValorConversao.Valor,
-                request.Quantidade));
+            var cotacaoPorMoedaResponse = new CotacaoPorMoedaResponse(new MoedaResponse(Cotacao.Key, VALOR_UNITARIO_MOEDA_LOCAL),
+                                                new MoedaResponse(request.Moeda, Cotacao.Value),
+                                                TaxaResponse.ValorTaxa,
+                                                ValorConversao.Valor,
+                                                request.Quantidade);
+
+            return Response.Ok(ResponseContent.Create(cotacaoPorMoedaResponse));
         }
     }
 }

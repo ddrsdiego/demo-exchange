@@ -1,8 +1,8 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
-
-namespace Demo.Exchange.Application
+﻿namespace Demo.Exchange.Application
 {
+    using MediatR;
+    using Microsoft.Extensions.Logging;
+
     public abstract class Handler
     {
         protected Handler(IMediator mediator, ILogger logger)

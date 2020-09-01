@@ -22,19 +22,19 @@
                 .WithMessage("Moeda desejada para conversão não deve ser nulo ou vazio.");
         }
 
-        public static void ValidarQuery(ObterCotacaoPorMoedaQuery request, ObterCotacaoPorMoedaResponse response)
+        public static Response ValidarQuery(ObterCotacaoPorMoedaQuery request)
         {
             var validador = new ObterCotacaoPorMoedaQueryValidator();
             var resultado = validador.Validate(request);
 
             if (resultado.IsValid)
-                return;
+                return Response.Ok();
 
             var invalidQueryParameters = Errors.General.InvalidQueryParameters();
             foreach (var failure in resultado.Errors)
                 invalidQueryParameters.AddErroDetail(Errors.General.InvalidArgument(failure.ErrorCode, failure.ErrorMessage));
 
-            response.AddError(invalidQueryParameters);
+            return Response.Fail(invalidQueryParameters);
         }
     }
 }

@@ -1,18 +1,14 @@
 ﻿namespace Demo.Exchange.Infra.Cache.Redis
 {
-    using OpenTracing;
     using StackExchange.Redis;
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class RedisCacheService : ICacheService
+    public sealed class RedisCacheService : ICacheService
     {
         private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public RedisCacheService(IConnectionMultiplexer connectionMultiplexer)
-        {
-            _connectionMultiplexer = connectionMultiplexer;
-        }
+        public RedisCacheService(IConnectionMultiplexer connectionMultiplexer) => _connectionMultiplexer = connectionMultiplexer;
 
         public async ValueTask<T> GetCacheValue<T>(string key)
         {
@@ -23,14 +19,12 @@
         {
             var db = _connectionMultiplexer.GetDatabase();
             return await db.StringGetAsync(key);
-
         }
 
         public async ValueTask<string> GetCacheValueAsString(string key)
         {
             var db = _connectionMultiplexer.GetDatabase();
             return await db.StringGetAsync(key);
-
         }
 
         public async ValueTask SetCacheValueAsByte(string key, byte[] value)

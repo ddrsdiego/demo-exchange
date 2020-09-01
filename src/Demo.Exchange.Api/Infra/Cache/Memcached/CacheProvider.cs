@@ -17,9 +17,9 @@
 
     public class CacheProvider : ICacheProvider
     {
+        private readonly ITracer _tracer;
         private readonly IMemcachedClient _memcachedClient;
         private readonly ICacheRepository _cacheRepository;
-        private readonly ITracer _tracer;
 
         public CacheProvider(IMemcachedClient memcachedClient, ICacheRepository cacheRepository, ITracer tracer)
         {
@@ -30,11 +30,18 @@
 
         public async ValueTask<T> Get<T>(string key)
         {
-            using (var scope = _tracer.BuildSpan($"CacheProvider::Get::{typeof(T)}").StartActive(true))
+            try
             {
-                var valueResult = await _memcachedClient.GetAsync<T>(key);
+                using (var scope = _tracer.BuildSpan($"CacheProvider::Get::{typeof(T)}").StartActive(true))
+                {
+                    var valueResult = await _memcachedClient.GetAsync<T>(key);
 
-                return valueResult.HasValue ? valueResult.Value : default;
+                    return valueResult.HasValue ? valueResult.Value : default;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
 
