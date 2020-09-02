@@ -16,9 +16,15 @@
 
         public async Task Handle(ValorTaxaAtualizadaEvent notification, CancellationToken cancellationToken)
         {
-            var response = await Mediator.Send(new RegistrarTaxaInCacheCommand(notification.Id));
+            var response = await Mediator.Send(notification.ConverteEventoParaCommand());
             if (response.IsFailure)
                 Logger.LogWarning("");
         }
+    }
+
+    internal static class ValorTaxaAtualizadaEventEx
+    {
+        public static RegistrarTaxaInCacheCommand ConverteEventoParaCommand(this ValorTaxaAtualizadaEvent taxaAtualizadaEvent)
+            => new RegistrarTaxaInCacheCommand(taxaAtualizadaEvent.RequestId, taxaAtualizadaEvent.Id);
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace Demo.Exchange.UnitTest.Application
 {
     using Demo.Exchange.Application;
+    using Demo.Exchange.Application.Models;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
@@ -26,50 +27,50 @@
         public void Should_Return_Response_OK_With_Content()
         {
             //arrange
-            var customerResponse = new CustomerResponseStruct { CustomerId = "32927484880", Name = "Diego Dias Ribeiro da Silva", Age = 37 };
-            var customerAsJson = JsonSerializer.Serialize(customerResponse);
-            var customerAsByte = JsonSerializer.SerializeToUtf8Bytes(customerResponse);
+            var taxaResponse = FakesData.FakeData.TaxaResponseValid;
+            var taxaResponseAsJson = JsonSerializer.Serialize(taxaResponse);
+            var taxaResponseAsByte = JsonSerializer.SerializeToUtf8Bytes(taxaResponse);
 
             //act
-            var response = Response.Ok(ResponseContent.Create<CustomerResponseStruct>(customerResponse));
-            var raw = response.Content.GetRaw(typeof(CustomerResponseStruct));
+            var response = Response.Ok(ResponseContent.Create(taxaResponse));
+            var raw = response.Content.GetRaw(typeof(TaxaResponse));
 
             //assert
             response.StatusCode.Should().Be(StatusCodes.Status200OK);
-            response.Content.Value.Should().BeEquivalentTo(customerAsByte);
-            response.Content.ValueAsJsonString.Should().Be(customerAsJson);
+            response.Content.Value.Should().BeEquivalentTo(taxaResponseAsByte);
+            response.Content.ValueAsJsonString.Should().Be(taxaResponseAsJson);
 
             response.IsSuccess.Should().BeTrue();
             response.IsFailure.Should().BeFalse();
             response.ErrorResponse.Should().Be(default(ErrorResponse));
             response.ErrorResponse.Error.Should().Be(default(Error));
 
-            ((CustomerResponseStruct)raw).CustomerId.Should().Be(customerResponse.CustomerId);
+            ((TaxaResponse)raw).Id.Should().Be(taxaResponse.Id);
         }
 
         [Test]
         public void Should_Return_Response_Created_With_Content()
         {
             //arrange
-            var customerResponse = new CustomerResponseStruct { CustomerId = "32927484880", Name = "Diego Dias Ribeiro da Silva", Age = 37 };
-            var customerAsJson = JsonSerializer.Serialize(customerResponse);
-            var customerAsByte = JsonSerializer.SerializeToUtf8Bytes(customerResponse);
+            var taxaResponse = FakesData.FakeData.TaxaResponseValid;
+            var taxaResponseAsJson = JsonSerializer.Serialize(taxaResponse);
+            var taxaResponseAsByte = JsonSerializer.SerializeToUtf8Bytes(taxaResponse);
 
             //act
-            var response = Response.Ok(StatusCodes.Status201Created, ResponseContent.Create<CustomerResponseStruct>(customerResponse));
-            var rawContent = response.Content.GetRaw(typeof(CustomerResponseStruct));
+            var response = Response.Ok(StatusCodes.Status201Created, ResponseContent.Create<TaxaResponse>(taxaResponse));
+            var rawContent = response.Content.GetRaw(typeof(TaxaResponse));
 
             //assert
             response.StatusCode.Should().Be(StatusCodes.Status201Created);
-            response.Content.Value.Should().BeEquivalentTo(customerAsByte);
-            response.Content.ValueAsJsonString.Should().Be(customerAsJson);
+            response.Content.Value.Should().BeEquivalentTo(taxaResponseAsByte);
+            response.Content.ValueAsJsonString.Should().Be(taxaResponseAsJson);
 
             response.IsSuccess.Should().BeTrue();
             response.IsFailure.Should().BeFalse();
             response.ErrorResponse.Should().Be(default(ErrorResponse));
             response.ErrorResponse.Error.Should().Be(default(Error));
 
-            ((CustomerResponseStruct)rawContent).CustomerId.Should().Be(customerResponse.CustomerId);
+            ((TaxaResponse)rawContent).Id.Should().Be(taxaResponse.Id);
         }
 
         [Test]

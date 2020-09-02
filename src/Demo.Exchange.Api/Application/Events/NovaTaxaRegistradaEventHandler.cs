@@ -16,9 +16,15 @@
 
         public async Task Handle(NovaTaxaRegistradaEvent notification, CancellationToken cancellationToken)
         {
-            var response = await Mediator.Send(new RegistrarTaxaInCacheCommand(notification.TaxaCobranca.TaxaCobrancaId));
+            var response = await Mediator.Send(notification.ConverteEventoParaCommand());
             if (response.IsFailure)
                 Logger.LogWarning("");
         }
+    }
+
+    internal static class NovaTaxaRegistradaEventEx
+    {
+        public static RegistrarTaxaInCacheCommand ConverteEventoParaCommand(this NovaTaxaRegistradaEvent notification)
+            => new RegistrarTaxaInCacheCommand(notification.RequestId, notification.TaxaCobranca.TaxaCobrancaId);
     }
 }

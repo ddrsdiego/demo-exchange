@@ -1,6 +1,7 @@
 ﻿namespace Demo.Exchange.UnitTest.Application
 {
     using Demo.Exchange.Application;
+    using Demo.Exchange.Application.Models;
     using FluentAssertions;
     using NUnit.Framework;
     using System.Text.Json;
@@ -11,33 +12,52 @@
         [Test]
         public void Should_Create_ResponseContent_With_JsonString()
         {
-            var customerResponse = new CustomerResponseStruct { CustomerId = "32927484880", Name = "Diego Dias Ribeiro da Silva", Age = 37 };
-            var customerAsJson = JsonSerializer.Serialize(customerResponse, typeof(CustomerResponseStruct));
+            var taxaResponse = FakesData.FakeData.TaxaResponseValid;
+            var taxaResponseAsJson = JsonSerializer.Serialize(taxaResponse, typeof(TaxaResponse));
 
-            var responseContent = ResponseContent.Create(customerAsJson, typeof(CustomerResponseStruct));
-            var contentRaw = responseContent.GetRaw<CustomerResponseStruct>();
+            var responseContent = ResponseContent.Create(taxaResponseAsJson, typeof(TaxaResponse));
+            var contentRaw = responseContent.GetRaw<TaxaResponse>();
+
             responseContent.Value.Should().NotBeNull();
-            customerResponse.CustomerId.Should().Be(contentRaw.CustomerId);
-            responseContent.ValueAsJsonString.Should().Be(customerAsJson);
+            taxaResponse.Id.Should().Be(contentRaw.Id);
+            responseContent.ValueAsJsonString.Should().Be(taxaResponseAsJson);
         }
 
         [Test]
         public void Should_Create_ResponseContent_With_Generics()
         {
-            var customerResponse = new CustomerResponseStruct { CustomerId = "32927484880", Name = "Diego Dias Ribeiro da Silva", Age = 37 };
-            var responseContent = ResponseContent.Create<CustomerResponseStruct>(customerResponse);
+            var taxaResponse = FakesData.FakeData.TaxaResponseValid;
+            var taxaResponseAsJson = JsonSerializer.Serialize(taxaResponse, typeof(TaxaResponse));
 
-            var contentRaw = responseContent.GetRaw<CustomerResponseStruct>();
+            var responseContent = ResponseContent.Create<TaxaResponse>(taxaResponse);
+
+            var contentRaw = responseContent.GetRaw<TaxaResponse>();
+
+            taxaResponse.Id.Should().Be(contentRaw.Id);
 
             responseContent.Value.Should().NotBeNull();
-            customerResponse.CustomerId.Should().Be(contentRaw.CustomerId);
+            responseContent.ValueAsJsonString.Should().NotBeEmpty();
+            responseContent.ValueAsJsonString.Should().Be(taxaResponseAsJson);
         }
-    }
 
-    internal struct CustomerResponseStruct
-    {
-        public string CustomerId { get; set; }
-        public string Name { get; set; }
-        public int Age { get; set; }
+        [Test]
+        public void Should_Create_ResponseContent_With_ByteArray()
+        {
+            var taxaResponse = FakesData.FakeData.TaxaResponseValid;
+            var taxaResponseAsJson = JsonSerializer.Serialize(taxaResponse, typeof(TaxaResponse));
+            var taxaResponseAsByte = JsonSerializer.SerializeToUtf8Bytes<TaxaResponse>(taxaResponse);
+
+            var responseContent = ResponseContent.Create(taxaResponseAsByte, typeof(TaxaResponse));
+
+            var contentRaw = responseContent.GetRaw<TaxaResponse>();
+
+            taxaResponse.Id.Should().Be(contentRaw.Id);
+
+            responseContent.Value.Should().NotBeNull();
+            responseContent.ValueAsJsonString.Should().NotBeEmpty();
+
+            responseContent.Value.Should().BeEquivalentTo(taxaResponseAsByte);
+            responseContent.ValueAsJsonString.Should().Be(taxaResponseAsJson);
+        }
     }
 }

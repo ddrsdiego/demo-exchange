@@ -6,6 +6,12 @@
     public static class TaxaCobrancaEx
     {
         public static TaxaResponse ConverterEntidadeParaResponse(this TaxaCobranca taxaCobranca)
-            => new TaxaResponse(taxaCobranca.TaxaCobrancaId, taxaCobranca.TipoSegmento.Id, taxaCobranca.ValorTaxa.Valor, taxaCobranca.CriadoEm);
+            => new TaxaResponse
+            {
+                Id = taxaCobranca.TaxaCobrancaId,
+                TipoSegmento = taxaCobranca.TipoSegmento.Id,
+                ValorTaxa = taxaCobranca.ValorTaxa.Valor,
+                CriadoEm = taxaCobranca.CriadoEm
+            };
     }
 }

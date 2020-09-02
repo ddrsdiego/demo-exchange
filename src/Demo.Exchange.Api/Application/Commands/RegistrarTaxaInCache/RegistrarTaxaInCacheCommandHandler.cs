@@ -1,6 +1,7 @@
 ﻿namespace Demo.Exchange.Application.Commands.RegistrarTaxaInCache
 {
     using Demo.Exchange.Application.Commands.RegistrarNovaTaxa;
+    using Demo.Exchange.Application.Models;
     using Demo.Exchange.Domain.AggregateModel.TaxaModel;
     using Demo.Exchange.Infra.Cache;
     using Demo.Exchange.Infra.Cache.Memcached;
@@ -14,10 +15,10 @@
     {
         private TaxaCobranca TaxaCobranca;
 
-        private readonly ICacheRepository _cacheRepository;
-        private readonly ITaxaCobrancaRepository _taxaCobrancaRepository;
         private readonly ICacheService _cacheService;
+        private readonly ICacheRepository _cacheRepository;
         private readonly IDistributedCache _distributedCache;
+        private readonly ITaxaCobrancaRepository _taxaCobrancaRepository;
 
         public RegistrarTaxaInCacheCommandHandler(IMediator mediator,
                                                   ILoggerFactory logger,
@@ -27,10 +28,10 @@
                                                   IDistributedCache distributedCache)
             : base(mediator, logger.CreateLogger<RegistrarTaxaInCacheCommandHandler>())
         {
-            _cacheRepository = cacheRepository;
-            _taxaCobrancaRepository = taxaCobrancaRepository;
             _cacheService = cacheService;
+            _cacheRepository = cacheRepository;
             _distributedCache = distributedCache;
+            _taxaCobrancaRepository = taxaCobrancaRepository;
         }
 
         public async Task<Response> Handle(RegistrarTaxaInCacheCommand request, CancellationToken cancellationToken)
@@ -38,7 +39,8 @@
             TaxaCobranca = await _taxaCobrancaRepository.ObterPorId(request.Id);
 
             var taxaResponse = TaxaCobranca.ConverterEntidadeParaResponse();
-            var responseContent = ResponseContent.Create(taxaResponse);
+
+            var responseContent = ResponseContent.Create<TaxaResponse>(taxaResponse);
 
             await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.Id}", responseContent.Value);
             await _cacheService.SetCacheValueAsByte($"BYTE-{taxaResponse.TipoSegmento}", responseContent.Value);
