@@ -54,8 +54,8 @@
             await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.Id}", responseContent.ValueAsJsonString);
             await _cacheService.SetCacheValueAsString($"STACKEXCHANGE-STRING-{taxaResponse.TipoSegmento}", responseContent.ValueAsJsonString);
 
-            await _cacheRepository.Set(taxaResponse.Id, taxaResponse);
-            await _cacheRepository.Set(taxaResponse.TipoSegmento, taxaResponse);
+            await _cacheRepository.Set(taxaResponse.Id, responseContent.Value);
+            await _cacheRepository.Set(taxaResponse.TipoSegmento, responseContent.Value);
 
             return Response.Ok(responseContent);
         }

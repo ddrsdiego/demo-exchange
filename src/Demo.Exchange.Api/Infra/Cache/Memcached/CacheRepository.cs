@@ -7,7 +7,7 @@
 
     public interface ICacheRepository
     {
-        Task Set<T>(string key, T value);
+        ValueTask Set<T>(string key, T value);
     }
 
     public class CacheRepository : ICacheRepository
@@ -21,7 +21,7 @@
             _memcachedClient = memcachedClient;
         }
 
-        public async Task Set<T>(string key, T value)
+        public async ValueTask Set<T>(string key, T value)
         {
             try
             {

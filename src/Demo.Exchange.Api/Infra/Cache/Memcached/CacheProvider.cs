@@ -23,9 +23,9 @@
 
         public CacheProvider(IMemcachedClient memcachedClient, ICacheRepository cacheRepository, ITracer tracer)
         {
+            _tracer = tracer;
             _memcachedClient = memcachedClient;
             _cacheRepository = cacheRepository;
-            _tracer = tracer;
         }
 
         public async ValueTask<T> Get<T>(string key)

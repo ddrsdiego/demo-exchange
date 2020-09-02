@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 COPY ["src/Demo.Exchange.Api/Demo.Exchange.Api.csproj", "src/Demo.Exchange.Api/"]
+COPY ["src/Demo.Exchange.Domain/Demo.Exchange.Domain.csproj", "src/Demo.Exchange.Domain/"]
 RUN dotnet restore "src/Demo.Exchange.Api/Demo.Exchange.Api.csproj"
 COPY . .
 WORKDIR "/src/src/Demo.Exchange.Api"
