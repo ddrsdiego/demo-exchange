@@ -18,7 +18,7 @@
         {
             var response = await Mediator.Send(notification.ConverteEventoParaCommand());
             if (response.IsFailure)
-                Logger.LogWarning("");
+                Logger.LogWarning("@{ErrorResponse}", response.ErrorResponse);
         }
     }
 

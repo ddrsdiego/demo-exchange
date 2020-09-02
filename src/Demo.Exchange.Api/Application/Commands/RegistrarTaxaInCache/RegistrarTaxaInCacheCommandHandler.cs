@@ -8,6 +8,7 @@
     using MediatR;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Logging;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -36,7 +37,9 @@
 
         public async Task<Response> Handle(RegistrarTaxaInCacheCommand request, CancellationToken cancellationToken)
         {
-            TaxaCobranca = await _taxaCobrancaRepository.ObterPorId(request.Id);
+            var response = await ObterPorId(request);
+            if (response.IsFailure)
+                return response;
 
             var taxaResponse = TaxaCobranca.ConverterEntidadeParaResponse();
 
@@ -55,6 +58,22 @@
             await _cacheRepository.Set(taxaResponse.TipoSegmento, taxaResponse);
 
             return Response.Ok(responseContent);
+        }
+
+        private async Task<Response> ObterPorId(RegistrarTaxaInCacheCommand request)
+        {
+            try
+            {
+                TaxaCobranca = await _taxaCobrancaRepository.ObterPorId(request.Id);
+                if (TaxaCobranca is null)
+                    return Response.Fail(Errors.General.NotFound(nameof(TaxaCobranca), request.Id));
+            }
+            catch (Exception ex)
+            {
+                return Response.Fail(Errors.General.InternalProcessError("ObterTaxaPorId", ex.Message));
+            }
+
+            return Response.Ok();
         }
     }
 }
