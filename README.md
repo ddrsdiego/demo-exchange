@@ -7,7 +7,11 @@ Para o projeto foram usadas as seguintes imagens:
 
 Para o banco de dados, foi utilizado o MariaDB
 
-`docker run --name mariadb -e MYSQL_ROOT_PASSWORD=admin -d -p 3306:3306 mariadb`
+`docker build -f sql/Dockerfile -t demo-exchange-db . `
+
+O comando acima irá criar uma imagem com o banco de dados da aplicação criado
+
+`docker run --name mariadb -e MYSQL_ROOT_PASSWORD=admin -d -p 3306:3306 demo-exchange-db`
 
 **Comando acima irá expor a porta 3306 para utilizar instâncias do MariaDB**
 
@@ -22,7 +26,7 @@ A solução conta com a opção de rodar todos os serviços utilizando docker-co
 
 Para iniciar todos os serviços você deve executar os seguintes comandos na raiz do projeto /demo-exchange: 
 
-`docker-compose build --force-rm --pull`
+`docker-compose build --no-cache --force-rm --pull`
 
 Comando que irá realizar o pull de todas as imagens relacionados ao serviço.
 
@@ -31,9 +35,6 @@ Comando que irá realizar o pull de todas as imagens relacionados ao serviço.
 Comando que irá iniciar todos os serviços com as mesmas portas do comandos para o docker descritos acima.
 Obs: Você pode executar apenas esse comando, que o mesmo também irá fazer o pull das imagens caso não sejam localizadas na máquina.
 
-**WARNING**
-
-Antes de consultar os endpoinst do serviço será necessário executar o script de criação de banco dados que está na pasta **demo-exchange/src/Demo.Exchange.Api/Infra/Repositories/Scripts**.
 
 ## Swagger
 O serviço contem a documentação baseada no Swagger, estrutura de software de código aberto que ajuda os desenvolvedores a projetar, criar, documentar e consumir serviços da Web RESTfu

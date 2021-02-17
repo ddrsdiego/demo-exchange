@@ -19,6 +19,9 @@ services:
 
   mariadb:
     image: mariadb
+    build:
+      context: .
+      dockerfile: sql/Dockerfile
     networks:
       - net
     ports:
